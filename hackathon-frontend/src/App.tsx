@@ -21,7 +21,7 @@ export default function App() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [testImageUrl, setTestImageUrl] = useState("https://example.com/sample-item.jpg");
+  const [testImageUrl, setTestImageUrl] = useState("https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop");
 
   // 💬 チャット系
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function App() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    error && setError("");
     setLoading(true);
     try {
       if (isLogin) {
@@ -91,20 +91,37 @@ export default function App() {
     }
   };
 
+  // 🎯 Goのハンドラー(handleCreateItem)の必須チェックを絶対に突破する出品関数
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
+    const loggedInUserId = localStorage.getItem("user_id") || "";
+
     try {
+      // Go側の req.SellerID, req.Title, req.InitialPrice の全表記揺れを網羅！
       await api.createItem({
-        title,
-        description,
+        title: title,
+        description: description,
+        category: "一般",
+
+        // 💰 価格チェック（req.InitialPrice <= 0 対策のトリプル防衛）
+        initial_price: Number(price), // 本命スネークケース
+        initialPrice: Number(price),  // キャメルケース
+        InitialPrice: Number(price),  // Goフィールド名そのまま
+        price: Number(price),
         current_price: Number(price),
-        image_urls: testImageUrl
+
+        // 👤 出品者IDチェック（req.SellerID 対策）
+        seller_id: loggedInUserId, // 本命スネークケース
+        sellerId: loggedInUserId,  // キャメルケース
+        SellerID: loggedInUserId,  // Goフィールド名そのまま
+        user_id: loggedInUserId,
       });
+
       alert("出品が完了しました！");
       setTitle("");
       setPrice("");
       setDescription("");
-      fetchItems();
+      fetchItems(); // 一覧を再更新
     } catch (err: any) {
       alert("出品に失敗: " + err.message);
     }
@@ -147,18 +164,17 @@ export default function App() {
     setMessages(updatedMsgs);
   };
 
-  // 最初の読み込みトリガー（ログインした時に1回だけきれいに実行する）
+  // 最初の読み込みトリガー（ログイン時に1回だけキレイに実行）
   useEffect(() => {
     if (user) {
       fetchItems();
     }
-  }, [user]); // 👈 userが切り替わった時だけ動くようにロックをかけます
+  }, [user]);
 
   // ========================================================
   // 🎨 3. 画面レンダリング（HTML部分）
   // ========================================================
 
-  // 🟢 ログイン成功時の「3カラム・最強ダッシュボード」
   if (user) {
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -175,8 +191,7 @@ export default function App() {
           </div>
 
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            {/* 🛠️ 左カラム：AI出品サポート */}
+            {/* 左カラム：AI出品サポート */}
             <div className="lg:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 h-fit">
               <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">✨ AI高速出品サポート</h2>
               <div className="mb-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
@@ -186,8 +201,6 @@ export default function App() {
                   {aiLoading ? "Gemini鑑定中..." : "🔮 出品情報を自動生成"}
                 </button>
               </div>
-
-              {/* 🚀 ここが出品フォームとボタンです！ */}
               <form onSubmit={handleCreateItem} className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">商品名</label>
@@ -201,9 +214,7 @@ export default function App() {
                   <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">商品説明</label>
                   <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" />
                 </div>
-                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition">
-                  🚀 この内容で出品
-                </button>
+                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition">🚀 この内容で出品</button>
               </form>
             </div>
 
@@ -214,7 +225,7 @@ export default function App() {
                 <button onClick={fetchItems} className="text-xs text-indigo-600 hover:underline">🔄 更新</button>
               </div>
               {items.length === 0 ? (
-                  <p className="text-slate-400 text-xs text-center py-8">商品がありません。</p>
+                  <p className="text-slate-400 text-xs text-center py-8">商品がありません。左側から手動、またはAIを使って出品してみましょう！</p>
               ) : (
                   <div className="space-y-3">
                     {items.map((item: any) => (
@@ -224,7 +235,10 @@ export default function App() {
                             <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-1">{item.description}</p>
                           </div>
                           <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center">
-                            <span className="font-extrabold text-slate-900 text-sm">¥{item.price?.toLocaleString()}</span>
+                            {/* 💰 Goのレスポンス定義(current_price / initial_price)のどれが来ても綺麗にパースする安全設計 */}
+                            <span className="font-extrabold text-slate-900 text-sm">
+                        ¥{(item.current_price || item.currentPrice || item.initial_price || item.initialPrice || 0).toLocaleString()}
+                      </span>
                             <button onClick={() => handleOpenChat(item)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] px-2.5 py-1.5 rounded-lg transition shadow-sm">💬 交渉を始める</button>
                           </div>
                         </div>
