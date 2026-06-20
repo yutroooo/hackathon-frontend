@@ -233,6 +233,13 @@ export default function App() {
                         <div key={item.id} className={`p-3 border rounded-xl flex flex-col justify-between transition ${selectedItem?.id === item.id ? 'border-indigo-500 bg-indigo-50/20' : 'border-slate-100 bg-slate-50/50'}`}>
                           <div>
                             <h3 className="font-bold text-slate-800 text-sm">{item.title}</h3>
+                            {}
+                            <h3 className="font-bold text-slate-800 text-sm">{item.title}</h3>
+                            {}
+                            <div className="inline-flex items-center gap-1 text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md mt-1 font-medium">
+                              👤 出品者: {item.seller_name || "不明なユーザー"}
+                            </div>
+                            <p className="text-slate-500 text-[11px] mt-1 line-clamp-1">{item.description}</p>
                             <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-1">{item.description}</p>
                           </div>
                           <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center">
