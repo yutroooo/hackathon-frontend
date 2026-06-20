@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "./api";
 
 export default function App() {
@@ -147,10 +147,12 @@ export default function App() {
     setMessages(updatedMsgs);
   };
 
-  // 最初の読み込みトリガー
-  if (user && items.length === 0) {
-    fetchItems();
-  }
+  // 最初の読み込みトリガー（ログインした時に1回だけきれいに実行する）
+  useEffect(() => {
+    if (user) {
+      fetchItems();
+    }
+  }, [user]); // 👈 userが切り替わった時だけ動くようにロックをかけます
 
   // ========================================================
   // 🎨 3. 画面レンダリング（HTML部分）
