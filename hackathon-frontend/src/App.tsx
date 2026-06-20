@@ -151,6 +151,7 @@ export default function App() {
       await api.sendMessage(activeRoomId, user.id, userMsg);
       const updatedMsgs = await api.getMessages(activeRoomId);
       setMessages(updatedMsgs);
+      fetchItems();
     } catch (err: any) {
       alert("メッセージの送信に失敗: " + err.message);
     } finally {
