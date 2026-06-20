@@ -97,8 +97,8 @@ export default function App() {
       await api.createItem({
         title,
         description,
-        price: Number(price),
-        image_urls: [testImageUrl]
+        current_price: Number(price),
+        image_urls: testImageUrl
       });
       alert("出品が完了しました！");
       setTitle("");
