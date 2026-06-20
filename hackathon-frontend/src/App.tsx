@@ -179,6 +179,7 @@ export default function App() {
   if (user) {
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+          {/* ヘッダー */}
           <div className="max-w-7xl mx-auto bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center mb-8">
             <div>
               <h1 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600">
@@ -191,9 +192,11 @@ export default function App() {
             </button>
           </div>
 
+          {/* メインコンテンツ（2カラム構成に変更してスッキリさせます） */}
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* 左カラム：AI出品サポート */}
-            <div className="lg:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 h-fit">
+
+            {/* 🛠️ 左カラム：AI出品サポート（全体の35%） */}
+            <div className="lg:col-span-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 h-fit">
               <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">✨ AI高速出品サポート</h2>
               <div className="mb-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
                 <label className="block text-[10px] font-bold text-indigo-700 mb-1">検証用画像URL</label>
@@ -219,84 +222,97 @@ export default function App() {
               </form>
             </div>
 
-            {/* 中央カラム：商品一覧 */}
-            <div className="lg:col-span-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 h-fit max-h-[75vh] overflow-y-auto">
+            {/* 📦 右カラム：出品中の商品一覧（全体の65%に広げて見やすく！） */}
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 h-fit">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-bold text-slate-800">📦 出品中の商品</h2>
+                <h2 className="text-base font-bold text-slate-800">📦 タイムラインマーケット</h2>
                 <button onClick={fetchItems} className="text-xs text-indigo-600 hover:underline">🔄 更新</button>
               </div>
               {items.length === 0 ? (
-                  <p className="text-slate-400 text-xs text-center py-8">商品がありません。左側から手動、またはAIを使って出品してみましょう！</p>
+                  <p className="text-slate-400 text-xs text-center py-8">商品がありません。左側から出品してみましょう！</p>
               ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {items.map((item: any) => (
-                        <div key={item.id} className={`p-3 border rounded-xl flex flex-col justify-between transition ${selectedItem?.id === item.id ? 'border-indigo-500 bg-indigo-50/20' : 'border-slate-100 bg-slate-50/50'}`}>
+                        <div key={item.id} className="p-4 border border-slate-100 bg-slate-50/50 rounded-xl flex flex-col justify-between hover:shadow-md hover:border-slate-200 transition-all duration-200">
                           <div>
-                            <h3 className="font-bold text-slate-800 text-sm">{item.title}</h3>
-                            {}
-                            <h3 className="font-bold text-slate-800 text-sm">{item.title}</h3>
-                            {}
-                            <div className="inline-flex items-center gap-1 text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md mt-1 font-medium">
+                            <h3 className="font-bold text-slate-800 text-sm line-clamp-1">{item.title}</h3>
+                            {/* 👤 優先度①でバチッと追加した出品者バッジ */}
+                            <div className="inline-flex items-center gap-1 text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md mt-1 font-bold">
                               👤 出品者: {item.seller_name || "不明なユーザー"}
                             </div>
-                            <p className="text-slate-500 text-[11px] mt-1 line-clamp-1">{item.description}</p>
-                            <p className="text-slate-500 text-[11px] mt-0.5 line-clamp-1">{item.description}</p>
+                            <p className="text-slate-500 text-[11px] mt-2 line-clamp-2 leading-relaxed">{item.description}</p>
                           </div>
-                          <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center">
-                            {/* 💰 Goのレスポンス定義(current_price / initial_price)のどれが来ても綺麗にパースする安全設計 */}
-                            <span className="font-extrabold text-slate-900 text-sm">
-                        ¥{(item.current_price || item.currentPrice || item.initial_price || item.initialPrice || 0).toLocaleString()}
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+                      <span className="font-extrabold text-slate-900 text-sm">
+                        ¥{(item.current_price || item.initial_price || 0).toLocaleString()}
                       </span>
-                            <button onClick={() => handleOpenChat(item)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] px-2.5 py-1.5 rounded-lg transition shadow-sm">💬 交渉を始める</button>
+                            {/* 🎯 優先度②：「DMを送る」という直球文言に変更！ */}
+                            <button onClick={() => handleOpenChat(item)} className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-bold text-[11px] px-3 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
+                              💬 出品者にDMを送る
+                            </button>
                           </div>
                         </div>
                     ))}
                   </div>
               )}
             </div>
-
-            {/* 右カラム：リアルタイムチャット */}
-            <div className="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-[75vh]">
-              {activeRoomId && selectedItem ? (
-                  <>
-                    <div className="p-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl flex justify-between items-center">
-                      <div>
-                        <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-600">AI Negotiation Room</span>
-                        <h3 className="font-bold text-slate-800 text-sm">「{selectedItem.title}」の価格交渉</h3>
-                      </div>
-                      <button onClick={refreshChat} className="text-xs bg-white border border-slate-200 text-slate-600 px-2 py-1 rounded-md hover:bg-slate-50">🔄 同期</button>
-                    </div>
-                    <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/30">
-                      {messages.map((msg: any) => {
-                        const isMe = msg.sender_id === user.id;
-                        return (
-                            <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                              <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-xs shadow-sm ${isMe ? "bg-indigo-600 text-white rounded-br-none" : "bg-white text-slate-800 border border-slate-100 rounded-bl-none"}`}>
-                                <div className="text-[9px] opacity-60 mb-0.5 font-bold">{isMe ? "あなた（購入希望者）" : "🤖 出品者代行AI"}</div>
-                                <p className="leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                              </div>
-                            </div>
-                        );
-                      })}
-                      {chatLoading && (
-                          <div className="flex justify-start">
-                            <div className="bg-white text-slate-400 border border-slate-100 rounded-2xl rounded-bl-none px-4 py-2 text-xs animate-pulse">🤖 AIが価格交渉の返答を熟考中...</div>
-                          </div>
-                      )}
-                    </div>
-                    <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 flex gap-2">
-                      <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="1000円安くなりませんか？" className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all" />
-                      <button type="submit" disabled={chatLoading} className="bg-slate-800 hover:bg-slate-900 text-white font-medium px-4 py-2 rounded-xl text-xs transition disabled:opacity-50">送信</button>
-                    </form>
-                  </>
-              ) : (
-                  <div className="flex flex-col items-center justify-center flex-1 p-6 text-center text-slate-400">
-                    <div className="text-3xl mb-2">💬</div>
-                    <p className="text-xs font-medium">中央の商品一覧から「💬 交渉を始める」を押すと、<br />ここにリアルタイムAI交渉画面が起動します！</p>
-                  </div>
-              )}
-            </div>
           </div>
+
+          {/* ========================================================
+            🎯 優先度③：画面遷移風・大画面ダイナミックDMモーダル窓
+            ======================================================== */}
+          {activeRoomId && selectedItem && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div className="bg-white w-full max-w-2xl h-[85vh] rounded-3xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-slide-up">
+
+                  {/* モーダルヘッダー（DM感MAXの表記） */}
+                  <div className="p-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-indigo-50/30 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white text-lg font-bold shadow-md shadow-indigo-100">
+                        👤
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-800 text-sm">{selectedItem.seller_name || "出品者"} へのDM</span>
+                          <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-extrabold animate-pulse">● AI自動応答中</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium">対象商品: {selectedItem.title} (現在価格: ¥{(selectedItem.current_price || selectedItem.initial_price || 0).toLocaleString()})</p>
+                      </div>
+                    </div>
+                    {/* 閉じるボタン */}
+                    <button onClick={() => { setActiveRoomId(null); setSelectedItem(null); }} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200/60 text-slate-600 hover:bg-slate-200 transition text-sm font-bold">
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* チャットメッセージのタイムライン */}
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-50/50">
+                    {messages.map((msg: any) => {
+                      const isMe = msg.sender_id === user.id;
+                      return (
+                          <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs shadow-sm ${isMe ? "bg-indigo-600 text-white rounded-br-none" : "bg-white text-slate-800 border border-slate-100 rounded-bl-none"}`}>
+                              <div className="text-[9px] opacity-60 mb-1 font-bold">{isMe ? "あなた（購入希望者）" : `${selectedItem.seller_name || "出品者"} (AI代行)`}</div>
+                              <p className="leading-relaxed whitespace-pre-wrap font-medium">{msg.message}</p>
+                            </div>
+                          </div>
+                      );
+                    })}
+                    {chatLoading && (
+                        <div className="flex justify-start">
+                          <div className="bg-white text-slate-400 border border-slate-100 rounded-2xl rounded-bl-none px-4 py-2.5 text-xs animate-pulse font-medium">🤖 出品者AIがDMを入力中...</div>
+                        </div>
+                    )}
+                  </div>
+
+                  {/* フッター：送信フォーム */}
+                  <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-100 bg-white flex gap-2">
+                    <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="価格のご相談や、商品についての質問をDMしてみましょう！" className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium" />
+                    <button type="submit" disabled={chatLoading} className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-3 rounded-xl text-xs transition disabled:opacity-50">DM送信</button>
+                  </form>
+                </div>
+              </div>
+          )}
         </div>
     );
   }
