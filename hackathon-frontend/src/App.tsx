@@ -336,16 +336,29 @@ export default function App() {
                             </div>
                             <p style={{ fontSize: "12px", color: "#64748b", margin: "8px 0" }}>{item.description}</p>
                           </div>
-                          <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "between", alignItems: "center" }}>
-                      <span style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b" }}>
-                        ¥{(item.current_price || item.initial_price || 0).toLocaleString()}
-                      </span>
-                            <button
-                                onClick={() => handleOpenChat(item)}
-                                style={{ backgroundColor: "#4f46e5", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
-                            >
-                              💬 出品者にDMを送る
-                            </button>
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+  <span style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b" }}>
+    ¥{(item.current_price || item.initial_price || 0).toLocaleString()}
+  </span>
+
+                            {/* 自分の商品か他人の商品かでボタンを切り替える！ */}
+                            {item.seller_id === user.id ? (
+                                // 自分の商品の場合は「届いたDMに返信する」ボタンにする
+                                <button
+                                    onClick={() => handleOpenChat(item)}
+                                    style={{ backgroundColor: "#10b981", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
+                                >
+                                   届いたDMを確認・返信
+                                </button>
+                            ) : (
+                                // 他人の商品の場合は通常通り「DMを送る」ボタンにする
+                                <button
+                                    onClick={() => handleOpenChat(item)}
+                                    style={{ backgroundColor: "#4f46e5", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
+                                >
+                                  💬 出品者にDMを送る
+                                </button>
+                            )}
                           </div>
                         </div>
                     ))}
