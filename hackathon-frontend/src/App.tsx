@@ -216,8 +216,26 @@ export default function App() {
             <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-100" style={{ flex: 1, padding: "24px", overflowY: "auto", backgroundColor: "#f1f5f9" }}>
               {messages.map((msg: any) => {
                 const isMe = msg.sender_id === user.id;
+                const isAI = !msg.sender_id; // sender_id が空ならAIの発言
+                const isSeller = selectedItem.seller_id === user.id; // 自分がプロフィールの出品者と一致するか
+
+                // 立場と送信者に応じてラベルを完璧に動かす
+                let label = "";
+                if (isAI) {
+                  label = isSeller ? "あなたのAI代行エージェント" : `${selectedItem.seller_name || "出品者"} (AI代行)`;
+                } else if (isMe) {
+                  label = isSeller ? "あなた（出品者）" : "あなた（購入希望者）";
+                } else {
+                  // 自分以外の人間からのメッセージ
+                  label = isSeller ? "購入希望者（相手）" : `${selectedItem.seller_name || "出品者"}`;
+                }
+
                 return (
-                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`} style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: "16px" }}>
+                    <div
+                        key={msg.id}
+                        className={`flex ${isMe ? "justify-end" : "justify-start"} animate-fade-in`}
+                        style={{ display: "flex", justifyContent: isMe ? "flex-end" : "flex-start", marginBottom: "16px" }}
+                    >
                       <div
                           className={`rounded-2xl px-4 py-3 text-sm shadow-sm ${isMe ? "bg-indigo-600 text-white" : "bg-white text-slate-800"}`}
                           style={{
@@ -230,10 +248,11 @@ export default function App() {
                             boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
                           }}
                       >
+                        {/* 動的に切り替わる正しいラベルを表示 */}
                         <div style={{ fontSize: "10px", opacity: 0.7, fontWeight: "bold", marginBottom: "4px" }}>
-                          {isMe ? "あなた（購入希望者）" : `${selectedItem.seller_name || "出品者"} (AI代行)`}
+                          {label}
                         </div>
-                        <p style={{ margin: 0, whitespace: "pre-wrap", fontSize: "14px", leadingRelaxed: "1.5" }}>{msg.message}</p>
+                        <p style={{ margin: 0,原生whitespace: "pre-wrap", fontSize: "14px" }}>{msg.message}</p>
                       </div>
                     </div>
                 );
