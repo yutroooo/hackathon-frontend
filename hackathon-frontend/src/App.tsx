@@ -124,7 +124,7 @@ export default function App() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeRoomId) return;
+    if (!newMessage.trim() || !activeRoomId || !user) return;
 
     const userMsg = newMessage;
     setNewMessage("");
