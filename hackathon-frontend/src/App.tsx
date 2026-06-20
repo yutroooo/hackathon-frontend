@@ -22,7 +22,9 @@ export default function App() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
-  const [testImageUrl, setTestImageUrl] = useState("https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop");
+
+  // 📸 【修正1】商品画像URLの状態をここに正しく定義！
+  const [productImageUrl, setProductImageUrl] = useState("");
 
   // 💬 チャット系
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
@@ -78,50 +80,26 @@ export default function App() {
     }
   };
 
-  const handleAiSuggest = async () => {
-    setAiLoading(true);
-    try {
-      const res = await api.getAISuggest([testImageUrl]);
-      setTitle(res.title || "");
-      setPrice(res.recommended_price ? String(res.recommended_price) : "");
-      setDescription(res.description || "");
-    } catch (err: any) {
-      alert("AI提案の取得に失敗: " + err.message);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   // 🎯 Goのハンドラー(handleCreateItem)の必須チェックを絶対に突破する出品関数
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const loggedInUserId = localStorage.getItem("user_id") || "";
 
     try {
-      // Go側の req.SellerID, req.Title, req.InitialPrice の全表記揺れを網羅！
       await api.createItem({
         title: title,
         description: description,
         category: "一般",
-
-        // 💰 価格チェック（req.InitialPrice <= 0 対策のトリプル防衛）
-        initial_price: Number(price), // 本命スネークケース
-        initialPrice: Number(price),  // キャメルケース
-        InitialPrice: Number(price),  // Goフィールド名そのまま
-        price: Number(price),
-        current_price: Number(price),
-
-        // 👤 出品者IDチェック（req.SellerID 対策）
-        seller_id: loggedInUserId, // 本命スネークケース
-        sellerId: loggedInUserId,  // キャメルケース
-        SellerID: loggedInUserId,  // Goフィールド名そのまま
-        user_id: loggedInUserId,
+        initial_price: Number(price),
+        seller_id: loggedInUserId,
+        image_url: productImageUrl, // 📸 【修正2】アップロードした画像URLをGoに渡す！
       });
 
       alert("出品が完了しました！");
       setTitle("");
       setPrice("");
       setDescription("");
+      setProductImageUrl(""); // 📸 出品が終わったらプレビューを消す
       fetchItems(); // 一覧を再更新
     } catch (err: any) {
       alert("出品に失敗: " + err.message);
@@ -160,13 +138,6 @@ export default function App() {
     }
   };
 
-  const refreshChat = async () => {
-    if (!activeRoomId) return;
-    const updatedMsgs = await api.getMessages(activeRoomId);
-    setMessages(updatedMsgs);
-  };
-
-  // 最初の読み込みトリガー（ログイン時に1回だけキレイに実行）
   useEffect(() => {
     if (user) {
       fetchItems();
@@ -178,7 +149,6 @@ export default function App() {
   // ========================================================
 
   if (user) {
-
     if (activeRoomId && selectedItem) {
       return (
           <div className="min-h-screen bg-slate-50 flex flex-col" style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -202,7 +172,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 🚪 戻るボタン（これを押すと元のマーケット画面へ完全遷移） */}
+              {/* 戻るボタン */}
               <button
                   onClick={() => { setActiveRoomId(null); setSelectedItem(null); }}
                   className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm"
@@ -212,21 +182,19 @@ export default function App() {
               </button>
             </div>
 
-            {/* DMチャットのタイムライン（全画面で縦スクロールを保証） */}
+            {/* DMチャットのタイムライン */}
             <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-slate-100" style={{ flex: 1, padding: "24px", overflowY: "auto", backgroundColor: "#f1f5f9" }}>
               {messages.map((msg: any) => {
                 const isMe = msg.sender_id === user.id;
-                const isAI = !msg.sender_id; // sender_id が空ならAIの発言
-                const isSeller = selectedItem.seller_id === user.id; // 自分がプロフィールの出品者と一致するか
+                const isAI = !msg.sender_id;
+                const isSeller = selectedItem.seller_id === user.id;
 
-                // 立場と送信者に応じてラベルを完璧に動かす
                 let label = "";
                 if (isAI) {
                   label = isSeller ? "あなたのAI代行エージェント" : `${selectedItem.seller_name || "出品者"} (AI代行)`;
                 } else if (isMe) {
                   label = isSeller ? "あなた（出品者）" : "あなた（購入希望者）";
                 } else {
-                  // 自分以外の人間からのメッセージ
                   label = isSeller ? "購入希望者（相手）" : `${selectedItem.seller_name || "出品者"}`;
                 }
 
@@ -248,11 +216,10 @@ export default function App() {
                             boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
                           }}
                       >
-                        {/* 動的に切り替わる正しいラベルを表示 */}
                         <div style={{ fontSize: "10px", opacity: 0.7, fontWeight: "bold", marginBottom: "4px" }}>
                           {label}
                         </div>
-                        <p style={{ margin: 0,原生whitespace: "pre-wrap", fontSize: "14px" }}>{msg.message}</p>
+                        <p style={{ margin: 0, whiteSpace: "pre-wrap", fontSize: "14px" }}>{msg.message}</p>
                       </div>
                     </div>
                 );
@@ -264,7 +231,7 @@ export default function App() {
               )}
             </div>
 
-            {/* DM画面専用の送信フッター */}
+            {/* DM送信フッター */}
             <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-200 bg-white flex gap-3" style={{ display: "flex", padding: "16px", borderTop: "1px solid #e2e8f0", backgroundColor: "#ffffff", gap: "12px" }}>
               <input
                   type="text"
@@ -289,12 +256,11 @@ export default function App() {
     }
 
     // ========================================================
-    // 📦 通常のダッシュボード画面（DMが閉じてるときだけ表示）
+    // 📦 通常のダッシュボード画面
     // ========================================================
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-8" style={{ padding: "24px", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
-          {/* ヘッダー */}
-          <div className="max-w-7xl mx-auto bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center mb-8" style={{ display: "flex", justifyContent: "between", alignItems: "center", backgroundColor: "#ffffff", padding: "16px", borderRadius: "16px", marginBottom: "32px", border: "1px solid #f1f5f9" }}>
+          <div className="max-w-7xl mx-auto bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center mb-8" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#ffffff", padding: "16px", borderRadius: "16px", marginBottom: "32px", border: "1px solid #f1f5f9" }}>
             <div>
               <h1 className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600" style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}>
                 AIフリマ 取引ダッシュボード
@@ -306,19 +272,47 @@ export default function App() {
             </button>
           </div>
 
-          {/* メインの2カラムレイアウト */}
           <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
 
             {/* 左：AI出品サポート */}
             <div style={{ flex: "1 1 300px", backgroundColor: "#ffffff", padding: "20px", borderRadius: "16px", border: "1px solid #f1f5f9", height: "fit-content" }}>
               <h2 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "16px" }}>✨ AI高速出品サポート</h2>
-              <div style={{ marginBottom: "16px", padding: "12px", backgroundColor: "#eef2ff", borderRadius: "12px" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: "bold", color: "#4f46e5", marginBottom: "4px" }}>検証用画像URL</label>
-                <input type="text" value={testImageUrl} onChange={(e) => setTestImageUrl(e.target.value)} style={{ width: "100%", padding: "6px", borderRadius: "6px", border: "1px solid #cbd5e1", marginBottom: "8px" }} />
-                <button type="button" onClick={handleAiSuggest} disabled={aiLoading} style={{ width: "100%", backgroundColor: "#4f46e5", color: "white", padding: "8px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
-                  {aiLoading ? "Gemini鑑定中..." : "🔮 出品情報を自動生成"}
-                </button>
+
+              <div className="mb-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                <label className="block text-[10px] font-bold text-indigo-700 mb-1">📷 商品写真を撮る・選ぶ</label>
+
+                {productImageUrl && (
+                    <img src={productImageUrl} alt="プレビュー" className="w-full h-32 object-cover rounded-lg mb-2 border-2 border-indigo-200" style={{ width: "100%", height: "128px", objectFit: "cover", borderRadius: "8px", marginBottom: "8px", border: "2px solid #c7d2fe" }} />
+                )}
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setAiLoading(true);
+                        try {
+                          const imageUrl = await api.uploadImage(e.target.files[0]);
+                          setProductImageUrl(imageUrl);
+
+                          const res = await api.getAISuggest([imageUrl]);
+                          setTitle(res.title || "");
+                          setPrice(res.recommended_price ? String(res.recommended_price) : "");
+                          setDescription(res.description || "");
+                        } catch (err: any) {
+                          alert("画像の処理に失敗: " + err.message);
+                        } finally {
+                          setAiLoading(false);
+                        }
+                      }
+                    }}
+                    className="w-full text-xs p-1 bg-white border border-slate-200 rounded-lg mb-2"
+                    style={{ width: "100%", fontSize: "12px", padding: "4px", backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "8px", marginBottom: "8px" }}
+                />
+                <p className="text-[9px] text-slate-400 text-center" style={{ fontSize: "10px", color: "#94a3b8", textAlign: "center" }}>※ 写真を選ぶと、AIが自動で商品名を鑑定します</p>
               </div>
+
               <form onSubmit={handleCreateItem} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "12px", color: "#64748b" }}>商品名</label>
@@ -338,7 +332,7 @@ export default function App() {
 
             {/* 右：商品一覧タイムライン */}
             <div style={{ flex: "2 1 500px", backgroundColor: "#ffffff", padding: "24px", borderRadius: "16px", border: "1px solid #f1f5f9" }}>
-              <div style={{ display: "flex", justifyContent: "between", alignItems: "center", marginBottom: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <h2 style={{ fontSize: "18px", fontWeight: "bold", margin: 0 }}>📦 タイムラインマーケット</h2>
                 <button onClick={fetchItems} style={{ color: "#4f46e5", background: "none", border: "none", cursor: "pointer", fontSize: "14px" }}>🔄 更新</button>
               </div>
@@ -347,30 +341,35 @@ export default function App() {
               ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
                     {items.map((item: any) => (
-                        <div key={item.id} style={{ padding: "16px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", borderRadius: "12px", display: "flex", flexDirection: "column", justifyContent: "between" }}>
+                        <div key={item.id} style={{ padding: "16px", border: "1px solid #e2e8f0", backgroundColor: "#f8fafc", borderRadius: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                           <div>
+                            {/* 📸 【修正3】画像URLがあれば画面に貼り付ける！ */}
+                            {item.image_url && (
+                                <img
+                                    src={item.image_url}
+                                    alt={item.title}
+                                    style={{ width: "100%", height: "140px", objectFit: "cover", borderRadius: "8px", marginBottom: "12px", backgroundColor: "#e2e8f0" }}
+                                />
+                            )}
                             <h3 style={{ fontSize: "16px", fontWeight: "bold", margin: "0 0 4px 0" }}>{item.title}</h3>
                             <div style={{ display: "inline-block", fontSize: "12px", backgroundColor: "#e0e7ff", color: "#4f46e5", padding: "2px 8px", borderRadius: "6px", fontWeight: "bold", marginBottom: "8px" }}>
                               👤 出品者: {item.seller_name || "不明なユーザー"}
                             </div>
                             <p style={{ fontSize: "12px", color: "#64748b", margin: "8px 0" }}>{item.description}</p>
                           </div>
-                          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
-  <span style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b" }}>
-    ¥{(item.current_price || item.initial_price || 0).toLocaleString()}
-  </span>
+                          <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center" style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span style={{ fontSize: "16px", fontWeight: "bold", color: "#1e293b" }}>
+                              ¥{(item.current_price || item.initial_price || 0).toLocaleString()}
+                            </span>
 
-                            {/* 自分の商品か他人の商品かでボタンを切り替える！ */}
                             {item.seller_id === user.id ? (
-                                // 自分の商品の場合は「届いたDMに返信する」ボタンにする
                                 <button
                                     onClick={() => handleOpenChat(item)}
                                     style={{ backgroundColor: "#10b981", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
                                 >
-                                   届いたDMを確認・返信
+                                  📥 届いたDMを確認・返信
                                 </button>
                             ) : (
-                                // 他人の商品の場合は通常通り「DMを送る」ボタンにする
                                 <button
                                     onClick={() => handleOpenChat(item)}
                                     style={{ backgroundColor: "#4f46e5", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
@@ -389,6 +388,7 @@ export default function App() {
         </div>
     );
   }
+
   // 🚪 未ログイン時のサインイン / 会員登録画面
   return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-6">
