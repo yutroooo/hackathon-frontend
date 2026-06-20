@@ -3,7 +3,7 @@ import { api } from "./api";
 
 export default function App() {
   // ========================================================
-  // 🪵 1. すべての useState を最上階に集結（if文の外側！）
+  // 🪵 1. すべての useState を最上階に集結
   // ========================================================
 
   // 🔐 認証系
@@ -156,7 +156,7 @@ export default function App() {
   // 🎨 3. 画面レンダリング（HTML部分）
   // ========================================================
 
-  // ✨ Aパターン：ログイン成功時のメインダッシュボード画面
+  // 🟢 ログイン成功時の「3カラム・最強ダッシュボード」
   if (user) {
     return (
         <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -173,7 +173,8 @@ export default function App() {
           </div>
 
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* 左カラム：AI出品サポート */}
+
+            {/* 🛠️ 左カラム：AI出品サポート */}
             <div className="lg:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 h-fit">
               <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">✨ AI高速出品サポート</h2>
               <div className="mb-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
@@ -183,6 +184,8 @@ export default function App() {
                   {aiLoading ? "Gemini鑑定中..." : "🔮 出品情報を自動生成"}
                 </button>
               </div>
+
+              {/* 🚀 ここが出品フォームとボタンです！ */}
               <form onSubmit={handleCreateItem} className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">商品名</label>
@@ -196,7 +199,9 @@ export default function App() {
                   <label className="block text-[11px] font-semibold text-slate-500 mb-0.5">商品説明</label>
                   <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" />
                 </div>
-                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition">🚀 この内容で出品</button>
+                <button type="submit" className="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-2 rounded-lg text-xs transition">
+                  🚀 この内容で出品
+                </button>
               </form>
             </div>
 
@@ -272,7 +277,7 @@ export default function App() {
     );
   }
 
-  // 🚪 Bパターン：未ログイン時のサインイン / 会員登録画面
+  // 🚪 未ログイン時のサインイン / 会員登録画面
   return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-100">
