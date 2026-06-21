@@ -172,14 +172,31 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 戻るボタン */}
-              <button
-                  onClick={() => { setActiveRoomId(null); setSelectedItem(null); }}
-                  className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm"
-                  style={{ backgroundColor: "#1e293b", color: "white", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", border: "none", cursor: "pointer" }}
-              >
-                ← マーケットに戻る
-              </button>
+              {/* 右上のボタン群（購入ボタン ＋ 戻るボタン） */}
+              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+
+                {/* 💳 購入完了ボタン（デモ用） */}
+                <button
+                    onClick={() => {
+                      alert("🎉 購入が完了しました！\n引き続き、出品者からの発送通知をお待ちください。");
+                      // アラートを閉じたら自動で一覧画面に戻るおまけ付き！
+                      setActiveRoomId(null);
+                      setSelectedItem(null);
+                    }}
+                    style={{ backgroundColor: "#ef4444", color: "#ffffff", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", border: "none", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+                >
+                  💳 この価格で購入する
+                </button>
+
+                {/* 戻るボタン */}
+                <button
+                    onClick={() => { setActiveRoomId(null); setSelectedItem(null); }}
+                    className="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm"
+                    style={{ backgroundColor: "#1e293b", color: "white", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", border: "none", cursor: "pointer" }}
+                >
+                  ← マーケットに戻る
+                </button>
+              </div>
             </div>
 
             {/* DMチャットのタイムライン */}
