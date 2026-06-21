@@ -180,6 +180,9 @@ export default function App() {
                     onClick={() => {
                       alert("🎉 購入が完了しました！\n引き続き、出品者からの発送通知をお待ちください。");
                       // アラートを閉じたら自動で一覧画面に戻るおまけ付き！
+
+                      setItems(items.filter(item => item.id !== selectedItem.id));
+
                       setActiveRoomId(null);
                       setSelectedItem(null);
                     }}
