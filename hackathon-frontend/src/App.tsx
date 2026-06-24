@@ -23,10 +23,10 @@ export default function App() {
   const [description, setDescription] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
 
-  // 📸 【修正1】商品画像URLの状態をここに正しく定義！
+  //  商品画像URLの状態をここに正しく定義
   const [productImageUrl, setProductImageUrl] = useState("");
 
-  // 💬 チャット系
+  //  チャット系
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -80,7 +80,7 @@ export default function App() {
     }
   };
 
-  // 🎯 Goのハンドラー(handleCreateItem)の必須チェックを絶対に突破する出品関数
+  // Goのハンドラー(handleCreateItem)の必須チェックを絶対に突破する出品関数
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const loggedInUserId = localStorage.getItem("user_id") || "";
@@ -108,7 +108,8 @@ export default function App() {
 
   const handleOpenChat = async (item: any) => {
     try {
-      const res = await api.createRoom(item.id, "negotiation");
+      // 🎯 修正: 部屋を作る時に、第3引数として自分の user.id (buyer_id) をバックエンドに渡す
+      const res = await api.createRoom(item.id, "negotiation", user.id);
       setActiveRoomId(res.room_id);
       setSelectedItem(item);
       const msgData = await api.getMessages(res.room_id);
@@ -175,21 +176,24 @@ export default function App() {
               {/* 右上のボタン群（購入ボタン ＋ 戻るボタン） */}
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
 
-                {/* 💳 購入完了ボタン（デモ用） */}
-                <button
-                    onClick={() => {
-                      alert("🎉 購入が完了しました！\n引き続き、出品者からの発送通知をお待ちください。");
-                      // アラートを閉じたら自動で一覧画面に戻るおまけ付き！
+                {/* 💳 購入完了ボタン（自分が出品者ではなく、価格が下がったかAIが前向きな返事をしたら表示） */}
+                {user.id !== selectedItem.seller_id && (selectedItem.current_price < selectedItem.initial_price || messages.some(m => !m.sender_id && (m.message.includes("合意") || m.message.includes("変更") || m.message.includes("調整") || m.message.includes("手続") || m.message.includes("ありがとう") || m.message.includes("価格")))) && (
+                    <button
+                        onClick={() => {
+                          alert("🎉 購入が完了しました！\n引き続き、出品者からの発送通知をお待ちください。");
+                          // 🎯 今買った商品を、画面の商品リストから即座に消し去るマジック！
+                          setItems(items.filter(item => item.id !== selectedItem.id));
+                          // アラートを閉じたら自動で一覧画面に戻る
+                          setActiveRoomId(null);
+                          setSelectedItem(null);
+                        }}
+                        style={{ backgroundColor: "#ef4444", color: "#ffffff", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", border: "none", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+                    >
+                      💳 この価格で購入する
+                    </button>
+                )}
 
-                      setItems(items.filter(item => item.id !== selectedItem.id));
 
-                      setActiveRoomId(null);
-                      setSelectedItem(null);
-                    }}
-                    style={{ backgroundColor: "#ef4444", color: "#ffffff", padding: "8px 16px", borderRadius: "12px", fontWeight: "bold", border: "none", cursor: "pointer", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
-                >
-                  💳 この価格で購入する
-                </button>
 
                 {/* 戻るボタン */}
                 <button

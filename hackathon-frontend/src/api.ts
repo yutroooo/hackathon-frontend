@@ -1,6 +1,6 @@
 const BASE_URL = "https://hackathon-backend-qu42ojye7a-uc.a.run.app/api";
 
-// ☁️ Cloudinaryの設定
+// Cloudinaryの設定
 const CLOUDINARY_CLOUD_NAME = "dto3wxyxc";
 const CLOUDINARY_UPLOAD_PRESET = "hackathon_upload";
 
@@ -37,14 +37,14 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
 }
 
 // ========================================================
-// 🎯 各画面から呼び出すAPI関数一覧（すべてここ1つに集約！）
+//  各画面から呼び出すAPI関数一覧（すべてここ1つに集約！）
 // ========================================================
 export const api = {
-    // 🔐 認証系
+    // 認証系
     register: (data: any) => apiRequest<AuthResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
     login: (data: any) => apiRequest<AuthResponse>("/auth/login", { method: "POST", body: JSON.stringify(data) }),
 
-    // 📦 商品系
+    //  商品系
     getItems: () => apiRequest<any[]>("/items", { method: "GET" }),
 
     // 🎯 画像URL対応版＆apiRequestヘルパーでスッキリさせた出品関数
@@ -59,13 +59,19 @@ export const api = {
 
     getAISuggest: (imageUrls: string[]) => apiRequest<any>("/items/ai-suggest", { method: "POST", body: JSON.stringify({ image_urls: imageUrls }) }),
 
-    // 💬 チャット系
-    createRoom: (itemId: string, type: string) => apiRequest<any>("/rooms", { method: "POST", body: JSON.stringify({ item_id: itemId, type }) }),
+    // チャット系
+    createRoom: async (itemId: string, type: string, buyerId: string) => {
+        return apiRequest("/api/chat/rooms", {
+            method: "POST",
+            body: JSON.stringify({ item_id: itemId, type: type, buyer_id: buyerId }),
+        });
+    },
+
     getMessages: (roomId: string) => apiRequest<any[]>(`/rooms/messages?room_id=${roomId}`, { method: "GET" }),
     sendMessage: (roomId: string, senderId: string, message: string) =>
         apiRequest<any>(`/rooms/messages?room_id=${roomId}`, { method: "POST", body: JSON.stringify({ sender_id: senderId, message }) }),
 
-    // 📸 新規追加：画像をCloudinaryにアップロードして公開URLを取得する関数
+    // 画像をCloudinaryにアップロードして公開URLを取得する関数
     uploadImage: async (file: File): Promise<string> => {
         const formData = new FormData();
         formData.append("file", file);
