@@ -61,7 +61,7 @@ export const api = {
 
     // チャット系
     createRoom: async (itemId: string, type: string, buyerId: string) => {
-        return apiRequest("/api/chat/rooms", {
+        return apiRequest("/chat/rooms", {
             method: "POST",
             body: JSON.stringify({ item_id: itemId, type: type, buyer_id: buyerId }),
         });
