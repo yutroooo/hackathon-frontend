@@ -32,6 +32,8 @@ export default function App() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [roomList, setRoomList] = useState<any[]>([]);
+  const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
 
   // ========================================================
   // ⚙️ 2. 関数ロジックの定義
@@ -119,6 +121,40 @@ export default function App() {
       setMessages(msgData);
     } catch (err: any) {
       alert("チャット部屋の起動に失敗: " + err.message);
+    }
+  };
+  // 👤 出品者専用：DM一覧を確認する関数
+  const handleSellerCheckDM = async (item: any) => {
+    try {
+      const rooms = await api.getRoomsByItem(item.id);
+      if (rooms.length === 0) {
+        alert("まだ購入希望者からのメッセージはありません。");
+        return;
+      }
+      if (rooms.length === 1) {
+        // 購入希望者が1人だけなら、直接その部屋へジャンプ
+        enterSpecificRoom(rooms[0].id, item);
+        return;
+      }
+      // 複数人いる場合は、選択用のモーダルを開く
+      setRoomList(rooms);
+      setSelectedItem(item);
+      setIsRoomModalOpen(true);
+    } catch (err: any) {
+      alert("DMの取得に失敗しました: " + err.message);
+    }
+  };
+
+  // 🚪 共通：指定した部屋に入る関数
+  const enterSpecificRoom = async (roomId: string, item: any) => {
+    setActiveRoomId(roomId);
+    setSelectedItem(item);
+    setIsRoomModalOpen(false);
+    try {
+      const msgData = await api.getMessages(roomId);
+      setMessages(msgData);
+    } catch (err: any) {
+      alert("メッセージの取得に失敗: " + err.message);
     }
   };
 
@@ -396,7 +432,7 @@ export default function App() {
 
                             {item.seller_id === user.id ? (
                                 <button
-                                    onClick={() => handleOpenChat(item)}
+                                    onClick={() => handleSellerCheckDM(item)}
                                     style={{ backgroundColor: "#10b981", color: "white", padding: "6px 12px", borderRadius: "8px", fontWeight: "bold", border: "none", cursor: "pointer", fontSize: "12px" }}
                                 >
                                   📥 届いたDMを確認・返信
@@ -417,7 +453,35 @@ export default function App() {
             </div>
 
           </div>
+          {/* ======================================================== */}
+          {/* 🎯 ここに入れます！ルーム選択モーダルのコード一式 */}
+          {/* ======================================================== */}
+          {isRoomModalOpen && (
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50 }}>
+                <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '16px', color: '#1e293b' }}>💬 購入希望者一覧</h3>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>複数のユーザーからメッセージが届いています。</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                    {roomList.map((room, index) => (
+                        <button
+                            key={room.id}
+                            onClick={() => enterSpecificRoom(room.id, selectedItem)}
+                            style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '12px', textAlign: 'left', cursor: 'pointer', backgroundColor: '#f8fafc', transition: 'background-color 0.2s' }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                        >
+                          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#4f46e5' }}>👤 購入希望者 {index + 1}</span>
+                          <br/>
+                          <span style={{ fontSize: '10px', color: '#94a3b8' }}>Room ID: {room.id.substring(0, 10)}...</span>
+                        </button>
+                    ))}
+                  </div>
+                  <button onClick={() => setIsRoomModalOpen(false)} style={{ marginTop: '16px', width: '100%', padding: '12px', backgroundColor: '#e2e8f0', color: '#475569', borderRadius: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>閉じる</button>
+                </div>
+              </div>
+          )}
         </div>
+
     );
   }
 

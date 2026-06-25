@@ -67,6 +67,10 @@ export const api = {
         });
     },
 
+    getRoomsByItem: async (itemId: string) => {
+        return apiRequest(`/chat/rooms?item_id=${itemId}`, { method: "GET" });
+    },
+
     getMessages: (roomId: string) => apiRequest<any[]>(`/rooms/messages?room_id=${roomId}`, { method: "GET" }),
     sendMessage: (roomId: string, senderId: string, message: string) =>
         apiRequest<any>(`/rooms/messages?room_id=${roomId}`, { method: "POST", body: JSON.stringify({ sender_id: senderId, message }) }),
