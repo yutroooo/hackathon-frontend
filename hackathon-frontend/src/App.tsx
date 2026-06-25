@@ -74,7 +74,10 @@ export default function App() {
   const fetchItems = async () => {
     try {
       const data = await api.getItems();
-      setItems(data);
+
+      const purchasedItemIds = JSON.parse(localStorage.getItem("purchased_items") || "[]");
+
+      setItems(data.filter((item: any) => !purchasedItemIds.includes(item.id)));
     } catch (err: any) {
       alert("商品一覧の取得に失敗: " + err.message);
     }
@@ -176,13 +179,20 @@ export default function App() {
               {/* 右上のボタン群（購入ボタン ＋ 戻るボタン） */}
               <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
 
-                {/* 💳 購入完了ボタン（自分が出品者ではなく、価格が下がったかAIが前向きな返事をしたら表示） */}
-                {user.id !== selectedItem.seller_id && (selectedItem.current_price < selectedItem.initial_price || messages.some(m => !m.sender_id && (m.message.includes("合意") || m.message.includes("変更") || m.message.includes("調整") || m.message.includes("手続") || m.message.includes("ありがとう") || m.message.includes("価格")))) && (
+                {/* 💳 購入完了ボタン（フライング防止の厳格版：価格が下がるか、明確な合意の言葉が出た時だけ表示） */}
+                {user.id !== selectedItem.seller_id && messages.some(m => m.is_agreed) && (
                     <button
                         onClick={() => {
                           alert("🎉 購入が完了しました！\n引き続き、出品者からの発送通知をお待ちください。");
-                          // 🎯 今買った商品を、画面の商品リストから即座に消し去るマジック！
+
+                          // 🎯 【追加マジック】購入した商品IDをローカルに永続記録する！
+                          const purchasedItemIds = JSON.parse(localStorage.getItem("purchased_items") || "[]");
+                          purchasedItemIds.push(selectedItem.id);
+                          localStorage.setItem("purchased_items", JSON.stringify(purchasedItemIds));
+
+                          // 画面から即座に消す
                           setItems(items.filter(item => item.id !== selectedItem.id));
+
                           // アラートを閉じたら自動で一覧画面に戻る
                           setActiveRoomId(null);
                           setSelectedItem(null);
@@ -192,8 +202,6 @@ export default function App() {
                       💳 この価格で購入する
                     </button>
                 )}
-
-
 
                 {/* 戻るボタン */}
                 <button
@@ -418,7 +426,7 @@ export default function App() {
       <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50 flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-100">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600 tracking-tight">AIフリマアプリ　フリマカセ</h1>
+            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-600 tracking-tight">AIフリマアプリ フリマカセ</h1>
             <p className="text-slate-400 text-xs mt-1">ハッカソン・プロトタイプ v1.0</p>
             <h2 className="text-xl font-bold text-slate-800 mt-4">{isLogin ? "アカウントにログイン" : "新しく会員登録"}</h2>
           </div>
